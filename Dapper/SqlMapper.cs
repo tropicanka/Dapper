@@ -3291,11 +3291,10 @@ namespace Dapper
                             }
                             else
                             {
-                                if (colType == typeof(string))
+                                if (colType == typeof(string) && typeHandlers.TryGetValue(typeForDefaultTypeHandler, out var defaultTypeHandler))
                                 {
+                                    AddTypeHandler(unboxType, defaultTypeHandler);
 #pragma warning disable 618
-                                    var defaultMapper = typeHandlers[typeForDefaultTypeHandler];
-                                    AddTypeHandler(unboxType, defaultMapper);
                                     il.EmitCall(OpCodes.Call, typeof(TypeHandlerCache<>).MakeGenericType(unboxType).GetMethod(nameof(TypeHandlerCache<int>.Parse)), null);
 #pragma warning restore 618
                                 }
