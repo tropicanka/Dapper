@@ -361,6 +361,8 @@ namespace Dapper
             return LookupDbType(value.GetType(), "n/a", false, out ITypeHandler handler);
         }
 
+        private static Type typeForDefaultTypeHandler = typeof(object);
+
         /// <summary>
         /// OBSOLETE: For internal usage only. Lookup the DbType and handler for a given Type and member
         /// </summary>
@@ -413,6 +415,11 @@ namespace Dapper
                     return DbType.Object;
             }
 #endif
+            if (typeHandlers.TryGetValue(typeForDefaultTypeHandler, out handler))
+            {
+                AddTypeHandler(type, handler);
+                return DbType.Object;
+            }
             if (demand)
                 throw new NotSupportedException($"The member {name} of type {type.FullName} cannot be used as a parameter value");
             return DbType.Object;
@@ -3284,11 +3291,25 @@ namespace Dapper
                             }
                             else
                             {
-                                // not a direct match; need to tweak the unbox
-                                FlexibleConvertBoxedFromHeadOfStack(il, colType, nullUnderlyingType ?? unboxType, null);
-                                if (nullUnderlyingType != null)
+                                if (colType == typeof(string))
                                 {
-                                    il.Emit(OpCodes.Newobj, unboxType.GetConstructor(new[] { nullUnderlyingType })); // stack is now [target][target][typed-value]
+#pragma warning disable 618
+                                    var defaultMapper = typeHandlers[typeForDefaultTypeHandler];
+                                    AddTypeHandler(unboxType, defaultMapper);
+                                    il.EmitCall(OpCodes.Call, typeof(TypeHandlerCache<>).MakeGenericType(unboxType).GetMethod(nameof(TypeHandlerCache<int>.Parse)), null);
+#pragma warning restore 618
+                                }
+                                else
+                                {
+                                    // not a direct match; need to tweak the unbox
+                                    FlexibleConvertBoxedFromHeadOfStack(il, colType, nullUnderlyingType ?? unboxType,
+                                        null);
+                                    if (nullUnderlyingType != null)
+                                    {
+                                        il.Emit(OpCodes.Newobj,
+                                            unboxType.GetConstructor(new[]
+                                                {nullUnderlyingType})); // stack is now [target][target][typed-value]
+                                    }
                                 }
                             }
                         }
