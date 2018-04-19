@@ -10,7 +10,7 @@ namespace Dapper
             throw new NotImplementedException();
         }
 
-        public void SetValue(IDbDataParameter parameter, object value)
+        public void SetValue(IDbDataParameter parameter, object value, Type declaredType = null)
         {
             TableValuedParameter.Set(parameter, value as DataTable, null);
         }

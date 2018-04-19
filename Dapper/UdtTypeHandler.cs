@@ -28,7 +28,7 @@ namespace Dapper
                 return value is DBNull ? null : value;
             }
 
-            void ITypeHandler.SetValue(IDbDataParameter parameter, object value)
+            void ITypeHandler.SetValue(IDbDataParameter parameter, object value, Type declaredType)
             {
 #pragma warning disable 0618
                 parameter.Value = SanitizeParameterValue(value);

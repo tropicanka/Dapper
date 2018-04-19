@@ -11,7 +11,7 @@ namespace Dapper
             throw new NotSupportedException();
         }
 
-        public void SetValue(IDbDataParameter parameter, object value)
+        public void SetValue(IDbDataParameter parameter, object value, Type declaredType = null)
         {
             SqlDataRecordListTVPParameter.Set(parameter, value as IEnumerable<Microsoft.SqlServer.Server.SqlDataRecord>, null);
         }

@@ -30,7 +30,7 @@ namespace Dapper
             /// <param name="parameter">The parameter to set a value for.</param>
             /// <param name="value">The value to set.</param>
             [Obsolete(ObsoleteInternalUsageOnly, true)]
-            public static void SetValue(IDbDataParameter parameter, object value) => handler.SetValue(parameter, value);
+            public static void SetValue(IDbDataParameter parameter, object value) => handler.SetValue(parameter, value, typeof(T));
 
             internal static void SetHandler(ITypeHandler handler)
             {

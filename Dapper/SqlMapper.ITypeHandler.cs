@@ -15,7 +15,8 @@ namespace Dapper
             /// </summary>
             /// <param name="parameter">The parameter to configure</param>
             /// <param name="value">Parameter value</param>
-            void SetValue(IDbDataParameter parameter, object value);
+            /// <param name="declaredType">Parameter declared type</param>
+            void SetValue(IDbDataParameter parameter, object value, Type declaredType = null);
 
             /// <summary>
             /// Parse a database value back to a typed value

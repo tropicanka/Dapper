@@ -25,7 +25,7 @@ namespace Dapper
             /// <returns>The typed value</returns>
             public abstract T Parse(object value);
 
-            void ITypeHandler.SetValue(IDbDataParameter parameter, object value)
+            void ITypeHandler.SetValue(IDbDataParameter parameter, object value, Type declaredType)
             {
                 if (value is DBNull)
                 {
