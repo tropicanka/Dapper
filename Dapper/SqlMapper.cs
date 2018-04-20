@@ -2400,24 +2400,6 @@ namespace Dapper
             return result;
         }
 
-        private static Type GetDeclaredType(Type type, string parameterName)
-        {
-            var columnName = type.GetProperty(parameterName)?.PropertyType.Name;
-            if (string.IsNullOrEmpty(columnName))
-                return null;
-            var defaultTypeMap = new DefaultTypeMap(type);
-            var property = defaultTypeMap.Properties.Find(p => string.Equals(p.Name, columnName, StringComparison.Ordinal))
-                           ?? defaultTypeMap.Properties.Find(p => string.Equals(p.Name, columnName, StringComparison.OrdinalIgnoreCase));
-
-            if (property == null && DefaultTypeMap.MatchNamesWithUnderscores)
-            {
-                property = defaultTypeMap.Properties.Find(p => string.Equals(p.Name, columnName.Replace("_", ""), StringComparison.Ordinal))
-                           ?? defaultTypeMap.Properties.Find(p => string.Equals(p.Name, columnName.Replace("_", ""), StringComparison.OrdinalIgnoreCase));
-            }
-
-            return property.PropertyType;
-        }
-
         internal static Action<IDbCommand, object> CreateParamInfoGenerator(Identity identity, bool checkForDuplicates, bool removeUnused, IList<LiteralToken> literals)
         {
             Type type = identity.parametersType;
@@ -2691,12 +2673,8 @@ namespace Dapper
 
                 if (handler != null)
                 {
-                    var declaredType = identity.type != null 
-                        ? GetDeclaredType(identity.type, prop.Name)
-                        : prop.PropertyType;
-                    var genericType = prop.PropertyType == declaredType ? prop.PropertyType : typeof(object);
 #pragma warning disable 618
-                    il.Emit(OpCodes.Call, typeof(TypeHandlerCache<>).MakeGenericType(genericType).GetMethod(nameof(TypeHandlerCache<int>.SetValue))); // stack is now [parameters] [[parameters]] [parameter]
+                    il.Emit(OpCodes.Call, typeof(TypeHandlerCache<>).MakeGenericType(prop.PropertyType).GetMethod(nameof(TypeHandlerCache<int>.SetValue))); // stack is now [parameters] [[parameters]] [parameter]
 #pragma warning restore 618
                 }
                 else
