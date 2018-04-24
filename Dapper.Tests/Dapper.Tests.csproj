@@ -17,8 +17,8 @@
     <None Remove="Test.DB.sdf" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Dapper\Dapper.csproj" />
     <ProjectReference Include="..\Dapper.Contrib\Dapper.Contrib.csproj" />
+    <ProjectReference Include="..\Dapper\Dapper.Bk.csproj" />
     <PackageReference Include="FirebirdSql.Data.FirebirdClient" Version="5.9.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0" />
     <PackageReference Include="MySql.Data" Version="8.0.8-dmr" />
