@@ -56,9 +56,9 @@ namespace Dapper.Tests.Contrib
             {
                 var guid = Guid.NewGuid().ToString();
                 var o1 = new ObjectX { ObjectXId = guid, Name = "Foo" };
-                var originalxCount = (await connection.QueryAsync<int>("Select Count(*) From ObjectX").ConfigureAwait(false)).First();
+                var originalxCount = (await connection.QueryAsync<int>("Select Count(*) From ObjectX", null, null).ConfigureAwait(false)).First();
                 await connection.InsertAsync(o1).ConfigureAwait(false);
-                var list1 = (await connection.QueryAsync<ObjectX>("select * from ObjectX").ConfigureAwait(false)).ToList();
+                var list1 = (await connection.QueryAsync<ObjectX>("select * from ObjectX", null, null).ConfigureAwait(false)).ToList();
                 Assert.Equal(list1.Count, originalxCount + 1);
                 o1 = await connection.GetAsync<ObjectX>(guid).ConfigureAwait(false);
                 Assert.Equal(o1.ObjectXId, guid);
@@ -74,7 +74,7 @@ namespace Dapper.Tests.Contrib
                 var o2 = new ObjectY { ObjectYId = id, Name = "Foo" };
                 var originalyCount = connection.Query<int>("Select Count(*) From ObjectY").First();
                 await connection.InsertAsync(o2).ConfigureAwait(false);
-                var list2 = (await connection.QueryAsync<ObjectY>("select * from ObjectY").ConfigureAwait(false)).ToList();
+                var list2 = (await connection.QueryAsync<ObjectY>("select * from ObjectY", null, null).ConfigureAwait(false)).ToList();
                 Assert.Equal(list2.Count, originalyCount + 1);
                 o2 = await connection.GetAsync<ObjectY>(id).ConfigureAwait(false);
                 Assert.Equal(o2.ObjectYId, id);
@@ -125,7 +125,7 @@ namespace Dapper.Tests.Contrib
             {
                 Assert.Null(await connection.GetAsync<User>(30).ConfigureAwait(false));
 
-                var originalCount = (await connection.QueryAsync<int>("select Count(*) from Users").ConfigureAwait(false)).First();
+                var originalCount = (await connection.QueryAsync<int>("select Count(*) from Users", null, null).ConfigureAwait(false)).First();
 
                 var id = await connection.InsertAsync(new User { Name = "Adam", Age = 10 }).ConfigureAwait(false);
 
@@ -147,9 +147,9 @@ namespace Dapper.Tests.Contrib
                 Assert.True(await connection.UpdateAsync(notrackedUser).ConfigureAwait(false));
                 Assert.Equal("Cecil", (await connection.GetAsync<User>(id).ConfigureAwait(false)).Name);
 
-                Assert.Equal((await connection.QueryAsync<User>("select * from Users").ConfigureAwait(false)).Count(), originalCount + 1);
+                Assert.Equal((await connection.QueryAsync<User>("select * from Users", null, null).ConfigureAwait(false)).Count(), originalCount + 1);
                 Assert.True(await connection.DeleteAsync(user).ConfigureAwait(false));
-                Assert.Equal((await connection.QueryAsync<User>("select * from Users").ConfigureAwait(false)).Count(), originalCount);
+                Assert.Equal((await connection.QueryAsync<User>("select * from Users", null, null).ConfigureAwait(false)).Count(), originalCount);
 
                 Assert.False(await connection.UpdateAsync(notrackedUser).ConfigureAwait(false)); //returns false, user not found
 
@@ -193,8 +193,8 @@ namespace Dapper.Tests.Contrib
 
                 builder.Select("Id");
 
-                var ids = await connection.QueryAsync<int>(justId.RawSql, justId.Parameters).ConfigureAwait(false);
-                var users = await connection.QueryAsync<User>(all.RawSql, all.Parameters).ConfigureAwait(false);
+                var ids = await connection.QueryAsync<int>(justId.RawSql, justId.Parameters, null).ConfigureAwait(false);
+                var users = await connection.QueryAsync<User>(all.RawSql, all.Parameters, null).ConfigureAwait(false);
 
                 foreach (var u in data)
                 {
@@ -220,7 +220,7 @@ namespace Dapper.Tests.Contrib
 
                 await connection.InsertAsync(new User { Age = 5, Name = "Testy McTestington" }).ConfigureAwait(false);
 
-                if ((await connection.QueryAsync<int>(template.RawSql, template.Parameters).ConfigureAwait(false)).Single() != 1)
+                if ((await connection.QueryAsync<int>(template.RawSql, template.Parameters, null).ConfigureAwait(false)).Single() != 1)
                     throw new Exception("Query failed");
             }
         }

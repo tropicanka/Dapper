@@ -17,7 +17,7 @@ namespace Dapper.Tests
         [Fact]
         public async Task TestBasicStringUsageAsync()
         {
-            var query = await connection.QueryAsync<string>("select 'abc' as [Value] union all select @txt", new { txt = "def" }).ConfigureAwait(false);
+            var query = await connection.QueryAsync<string>("select 'abc' as [Value] union all select @txt", new { txt = "def" }, null).ConfigureAwait(false);
             var arr = query.ToArray();
             Assert.Equal(new[] { "abc", "def" }, arr);
         }
@@ -107,7 +107,7 @@ namespace Dapper.Tests
         [Fact]
         public async Task TestBasicStringUsageClosedAsync()
         {
-            var query = await connection.QueryAsync<string>("select 'abc' as [Value] union all select @txt", new { txt = "def" }).ConfigureAwait(false);
+            var query = await connection.QueryAsync<string>("select 'abc' as [Value] union all select @txt", new { txt = "def" }, null).ConfigureAwait(false);
             var arr = query.ToArray();
             Assert.Equal(new[] { "abc", "def" }, arr);
         }
@@ -123,7 +123,7 @@ namespace Dapper.Tests
         [Fact]
         public async Task TestClassWithStringUsageAsync()
         {
-            var query = await connection.QueryAsync<BasicType>("select 'abc' as [Value] union all select @txt", new { txt = "def" }).ConfigureAwait(false);
+            var query = await connection.QueryAsync<BasicType>("select 'abc' as [Value] union all select @txt", new { txt = "def" }, null).ConfigureAwait(false);
             var arr = query.ToArray();
             Assert.Equal(new[] { "abc", "def" }, arr.Select(x => x.Value));
         }
@@ -131,14 +131,14 @@ namespace Dapper.Tests
         [Fact]
         public async Task TestExecuteAsync()
         {
-            var val = await connection.ExecuteAsync("declare @foo table(id int not null); insert @foo values(@id);", new { id = 1 }).ConfigureAwait(false);
+            var val = await connection.ExecuteAsync("declare @foo table(id int not null); insert @foo values(@id);", new { id = 1 }, null).ConfigureAwait(false);
             Assert.Equal(1, val);
         }
 
         [Fact]
         public void TestExecuteClosedConnAsyncInner()
         {
-            var query = connection.ExecuteAsync("declare @foo table(id int not null); insert @foo values(@id);", new { id = 1 });
+            var query = connection.ExecuteAsync("declare @foo table(id int not null); insert @foo values(@id);", new { id = 1 }, null);
             var val = query.Result;
             Assert.Equal(1, val);
         }
@@ -294,16 +294,16 @@ namespace Dapper.Tests
         {
             try
             {
-                await conn.ExecuteAsync("drop table literal1").ConfigureAwait(false);
+                await conn.ExecuteAsync("drop table literal1", null, null).ConfigureAwait(false);
             }
             catch { /* don't care */ }
-            await conn.ExecuteAsync("create table literal1 (id int not null, foo int not null)").ConfigureAwait(false);
-            await conn.ExecuteAsync("insert literal1 (id,foo) values ({=id}, @foo)", new { id = 123, foo = 456 }).ConfigureAwait(false);
+            await conn.ExecuteAsync("create table literal1 (id int not null, foo int not null)", null, null).ConfigureAwait(false);
+            await conn.ExecuteAsync("insert literal1 (id,foo) values ({=id}, @foo)", new { id = 123, foo = 456 }, null).ConfigureAwait(false);
             var rows = new[] { new { id = 1, foo = 2 }, new { id = 3, foo = 4 } };
-            await conn.ExecuteAsync("insert literal1 (id,foo) values ({=id}, @foo)", rows).ConfigureAwait(false);
-            var count = (await conn.QueryAsync<int>("select count(1) from literal1 where id={=foo}", new { foo = 123 }).ConfigureAwait(false)).Single();
+            await conn.ExecuteAsync("insert literal1 (id,foo) values ({=id}, @foo)", rows, null).ConfigureAwait(false);
+            var count = (await conn.QueryAsync<int>("select count(1) from literal1 where id={=foo}", new { foo = 123 }, null).ConfigureAwait(false)).Single();
             Assert.Equal(1, count);
-            int sum = (await conn.QueryAsync<int>("select sum(id) + sum(foo) from literal1").ConfigureAwait(false)).Single();
+            int sum = (await conn.QueryAsync<int>("select sum(id) + sum(foo) from literal1", null, null).ConfigureAwait(false)).Single();
             Assert.Equal(sum, 123 + 456 + 1 + 2 + 3 + 4);
         }
 
@@ -323,28 +323,30 @@ namespace Dapper.Tests
         {
             var args = new DynamicParameters();
             args.Add("id", 123);
-            try { await conn.ExecuteAsync("drop table literal2").ConfigureAwait(false); }
+            try { await conn.ExecuteAsync("drop table literal2", null, null).ConfigureAwait(false); }
             catch { /* don't care */ }
-            await conn.ExecuteAsync("create table literal2 (id int not null)").ConfigureAwait(false);
-            await conn.ExecuteAsync("insert literal2 (id) values ({=id})", args).ConfigureAwait(false);
+            await conn.ExecuteAsync("create table literal2 (id int not null)", null, null).ConfigureAwait(false);
+            await conn.ExecuteAsync("insert literal2 (id) values ({=id})", args, null).ConfigureAwait(false);
 
             args = new DynamicParameters();
             args.Add("foo", 123);
-            var count = (await conn.QueryAsync<int>("select count(1) from literal2 where id={=foo}", args).ConfigureAwait(false)).Single();
+            var count = (await conn.QueryAsync<int>("select count(1) from literal2 where id={=foo}", args, null).ConfigureAwait(false)).Single();
             Assert.Equal(1, count);
         }
 
         [Fact]
         public async Task LiteralInAsync()
         {
-            await connection.ExecuteAsync("create table #literalin(id int not null);").ConfigureAwait(false);
+            await connection.ExecuteAsync("create table #literalin(id int not null);", null, null).ConfigureAwait(false);
             await connection.ExecuteAsync("insert #literalin (id) values (@id)", new[] {
                 new { id = 1 },
                 new { id = 2 },
                 new { id = 3 },
-            }).ConfigureAwait(false);
-            var count = (await connection.QueryAsync<int>("select count(1) from #literalin where id in {=ids}",
-                new { ids = new[] { 1, 3, 4 } }).ConfigureAwait(false)).Single();
+            }, null).ConfigureAwait(false);
+            var count = (await connection.QueryAsync<int>(
+                "select count(1) from #literalin where id in {=ids}",
+                new { ids = new[] { 1, 3, 4 } },
+                null).ConfigureAwait(false)).Single();
             Assert.Equal(2, count);
         }
 
@@ -448,26 +450,26 @@ namespace Dapper.Tests
         [Fact]
         public async Task Issue22_ExecuteScalarAsync()
         {
-            int i = await connection.ExecuteScalarAsync<int>("select 123").ConfigureAwait(false);
+            int i = await connection.ExecuteScalarAsync<int>("select 123", null, null).ConfigureAwait(false);
             Assert.Equal(123, i);
 
-            i = await connection.ExecuteScalarAsync<int>("select cast(123 as bigint)").ConfigureAwait(false);
+            i = await connection.ExecuteScalarAsync<int>("select cast(123 as bigint)", null, null).ConfigureAwait(false);
             Assert.Equal(123, i);
 
-            long j = await connection.ExecuteScalarAsync<long>("select 123").ConfigureAwait(false);
+            long j = await connection.ExecuteScalarAsync<long>("select 123", null, null).ConfigureAwait(false);
             Assert.Equal(123L, j);
 
-            j = await connection.ExecuteScalarAsync<long>("select cast(123 as bigint)").ConfigureAwait(false);
+            j = await connection.ExecuteScalarAsync<long>("select cast(123 as bigint)", null, null).ConfigureAwait(false);
             Assert.Equal(123L, j);
 
-            int? k = await connection.ExecuteScalarAsync<int?>("select @i", new { i = default(int?) }).ConfigureAwait(false);
+            int? k = await connection.ExecuteScalarAsync<int?>("select @i", new { i = default(int?) }, null).ConfigureAwait(false);
             Assert.Null(k);
         }
 
         [Fact]
         public async Task Issue346_QueryAsyncConvert()
         {
-            int i = (await connection.QueryAsync<int>("Select Cast(123 as bigint)").ConfigureAwait(false)).First();
+            int i = (await connection.QueryAsync<int>("Select Cast(123 as bigint)", null, null).ConfigureAwait(false)).First();
             Assert.Equal(123, i);
         }
 
@@ -489,7 +491,7 @@ SET @Occupation = 'grillmaster'
 SET @PersonId = @PersonId + 1 
 SET @NumberOfLegs = @NumberOfLegs - 1
 SET @AddressName = 'bobs burgers'
-SET @AddressPersonId = @PersonId", p).ConfigureAwait(false);
+SET @AddressPersonId = @PersonId", p, null).ConfigureAwait(false);
 
                 Assert.Equal("grillmaster", bob.Occupation);
                 Assert.Equal(2, bob.PersonId);
@@ -545,7 +547,7 @@ SET @PersonId = @PersonId + 1
 SET @NumberOfLegs = @NumberOfLegs - 1
 SET @AddressName = 'bobs burgers'
 SET @AddressPersonId = @PersonId
-select 42", p).ConfigureAwait(false)).Single();
+select 42", p, null).ConfigureAwait(false)).Single();
 
             Assert.Equal("grillmaster", bob.Occupation);
             Assert.Equal(2, bob.PersonId);
@@ -649,7 +651,7 @@ SET @AddressPersonId = @PersonId", p).ConfigureAwait(false))
         [Fact]
         public async Task TestSubsequentQueriesSuccessAsync()
         {
-            var data0 = (await connection.QueryAsync<AsyncFoo0>("select 1 as [Id] where 1 = 0").ConfigureAwait(false)).ToList();
+            var data0 = (await connection.QueryAsync<AsyncFoo0>("select 1 as [Id] where 1 = 0", null, null).ConfigureAwait(false)).ToList();
             Assert.Empty(data0);
 
             var data1 = (await connection.QueryAsync<AsyncFoo1>(new CommandDefinition("select 1 as [Id] where 1 = 0", flags: CommandFlags.Buffered)).ConfigureAwait(false)).ToList();
@@ -658,7 +660,7 @@ SET @AddressPersonId = @PersonId", p).ConfigureAwait(false))
             var data2 = (await connection.QueryAsync<AsyncFoo2>(new CommandDefinition("select 1 as [Id] where 1 = 0", flags: CommandFlags.None)).ConfigureAwait(false)).ToList();
             Assert.Empty(data2);
 
-            data0 = (await connection.QueryAsync<AsyncFoo0>("select 1 as [Id] where 1 = 0").ConfigureAwait(false)).ToList();
+            data0 = (await connection.QueryAsync<AsyncFoo0>("select 1 as [Id] where 1 = 0", null, null).ConfigureAwait(false)).ToList();
             Assert.Empty(data0);
 
             data1 = (await connection.QueryAsync<AsyncFoo1>(new CommandDefinition("select 1 as [Id] where 1 = 0", flags: CommandFlags.Buffered)).ConfigureAwait(false)).ToList();
@@ -677,20 +679,20 @@ SET @AddressPersonId = @PersonId", p).ConfigureAwait(false))
         [Fact]
         public async Task TestSchemaChangedViaFirstOrDefaultAsync()
         {
-            await connection.ExecuteAsync("create table #dog(Age int, Name nvarchar(max)) insert #dog values(1, 'Alf')").ConfigureAwait(false);
+            await connection.ExecuteAsync("create table #dog(Age int, Name nvarchar(max)) insert #dog values(1, 'Alf')", null, null).ConfigureAwait(false);
             try
             {
-                var d = await connection.QueryFirstOrDefaultAsync<Dog>("select * from #dog").ConfigureAwait(false);
+                var d = await connection.QueryFirstOrDefaultAsync<Dog>("select * from #dog", null, null).ConfigureAwait(false);
                 Assert.Equal("Alf", d.Name);
                 Assert.Equal(1, d.Age);
                 connection.Execute("alter table #dog drop column Name");
-                d = await connection.QueryFirstOrDefaultAsync<Dog>("select * from #dog").ConfigureAwait(false);
+                d = await connection.QueryFirstOrDefaultAsync<Dog>("select * from #dog", null, null).ConfigureAwait(false);
                 Assert.Null(d.Name);
                 Assert.Equal(1, d.Age);
             }
             finally
             {
-                await connection.ExecuteAsync("drop table #dog").ConfigureAwait(false);
+                await connection.ExecuteAsync("drop table #dog", null, null).ConfigureAwait(false);
             }
         }
 
@@ -714,7 +716,7 @@ SET @AddressPersonId = @PersonId", p).ConfigureAwait(false))
 
                 insert #ReviewBoards values(1, 'Review Board 1', 1, 2, 3, 4, 5, 6, 7, 8, 9)
 ";
-            await connection.ExecuteAsync(createSql).ConfigureAwait(false);
+            await connection.ExecuteAsync(createSql, null, null).ConfigureAwait(false);
             try
             {
                 const string sql = @"
@@ -802,7 +804,7 @@ SET @AddressPersonId = @PersonId", p).ConfigureAwait(false))
                 declare @@Name int
                 select @@Name = @Id+1
                 select @@Name
-                ", new Product { Id = 1 }).ConfigureAwait(false)).Single();
+                ", new Product { Id = 1 }, null).ConfigureAwait(false)).Single();
             Assert.Equal(2, id);
         }
 
@@ -824,7 +826,7 @@ SET @AddressPersonId = @PersonId", p).ConfigureAwait(false))
         {
             try
             {
-                var data = (await connection.QueryAsync<int>("select 1 union all select 2; RAISERROR('after select', 16, 1);").ConfigureAwait(false)).ToList();
+                var data = (await connection.QueryAsync<int>("select 1 union all select 2; RAISERROR('after select', 16, 1);", null, null).ConfigureAwait(false)).ToList();
                 Assert.True(false, "Expected Exception");
             }
             catch (SqlException ex) when (ex.Message == "after select") { /* swallow only this */ }
