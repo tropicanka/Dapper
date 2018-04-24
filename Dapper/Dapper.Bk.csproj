@@ -6,7 +6,7 @@
     <Description>A high performance Micro-ORM supporting SQL Server, MySQL, Sqlite, SqlCE, Firebird etc..</Description>
     <Authors></Authors>
     <TargetFrameworks>net451;netstandard1.3;netstandard2.0</TargetFrameworks>
-    <Version>1.50.7</Version>
+    <Version>1.50.8</Version>
     <PackageProjectUrl />
     <PackageLicenseUrl />
     <Copyright />
