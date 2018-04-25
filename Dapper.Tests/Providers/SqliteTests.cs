@@ -52,9 +52,9 @@ namespace Dapper.Tests
                 using (var connection = GetSQLiteConnection())
                 {
                     SqlMapper.ResetTypeHandlers();
-                    var row = (await connection.QueryAsync<HazNameId>("select 42 as Id", null, null).ConfigureAwait(false)).First();
+                    var row = (await connection.QueryAsync<HazNameId>("select 42 as Id").ConfigureAwait(false)).First();
                     Assert.Equal(42, row.Id);
-                    row = (await connection.QueryAsync<HazNameId>("select 42 as Id", null, null).ConfigureAwait(false)).First();
+                    row = (await connection.QueryAsync<HazNameId>("select 42 as Id").ConfigureAwait(false)).First();
                     Assert.Equal(42, row.Id);
 
                     SqlMapper.ResetTypeHandlers();

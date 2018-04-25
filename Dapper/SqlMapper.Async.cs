@@ -90,21 +90,6 @@ namespace Dapper
             QueryAsync<T>(cnn, typeof(T), new CommandDefinition(sql, param, transaction, commandTimeout, commandType, flags, cancellationToken));
 
         /// <summary>
-        /// Execute a query asynchronously using .NET 4.5 Task.
-        /// </summary>
-        /// <typeparam name="T">The type of results to return.</typeparam>
-        /// <param name="cnn">The connection to query on.</param>
-        /// <param name="sql">The SQL to execute for the query.</param>
-        /// <param name="param">The parameters to pass, if any.</param>
-        /// <param name="cancellationToken">The cancellation token for this command.</param>
-        /// <returns>
-        /// A sequence of data of <typeparamref name="T"/>; if a basic type (int, string, etc) is queried then the data from the first column in assumed, otherwise an instance is
-        /// created per row, and a direct column-name===member-name mapping is assumed (case insensitive).
-        /// </returns>
-        public static Task<IEnumerable<T>> QueryAsync<T>(this IDbConnection cnn, string sql, object param = null, CancellationToken cancellationToken = default(CancellationToken)) =>
-            QueryAsync<T>(cnn, typeof(T), new CommandDefinition(sql, param, null, null, null, CommandFlags.Buffered, cancellationToken));
-
-        /// <summary>
         /// Execute a single-row query asynchronously using .NET 4.5 Task.
         /// </summary>
         /// <typeparam name="T">The type of result to return.</typeparam>
@@ -131,17 +116,6 @@ namespace Dapper
         /// <param name="cancellationToken">The cancellation token for this command.</param>
         public static Task<T> QueryFirstOrDefaultAsync<T>(this IDbConnection cnn, string sql, object param = null, IDbTransaction transaction = null, int? commandTimeout = null, CommandType? commandType = null, CommandFlags flags = CommandFlags.None, CancellationToken cancellationToken = default(CancellationToken)) =>
             QueryRowAsync<T>(cnn, Row.FirstOrDefault, typeof(T), new CommandDefinition(sql, param, transaction, commandTimeout, commandType, flags, cancellationToken));
-
-        /// <summary>
-        /// Execute a single-row query asynchronously using .NET 4.5 Task.
-        /// </summary>
-        /// <typeparam name="T">The type of result to return.</typeparam>
-        /// <param name="cnn">The connection to query on.</param>
-        /// <param name="sql">The SQL to execute for the query.</param>
-        /// <param name="param">The parameters to pass, if any.</param>
-        /// <param name="cancellationToken">The cancellation token for this command.</param>
-        public static Task<T> QueryFirstOrDefaultAsync<T>(this IDbConnection cnn, string sql, object param = null, CancellationToken cancellationToken = default(CancellationToken)) =>
-            QueryRowAsync<T>(cnn, Row.FirstOrDefault, typeof(T), new CommandDefinition(sql, param, null, null, null, CommandFlags.None, cancellationToken));
 
         /// <summary>
         /// Execute a single-row query asynchronously using .NET 4.5 Task.
@@ -569,17 +543,6 @@ namespace Dapper
         /// <returns>The number of rows affected.</returns>
         public static Task<int> ExecuteAsync(this IDbConnection cnn, string sql, object param = null, IDbTransaction transaction = null, int? commandTimeout = null, CommandType? commandType = null, CommandFlags flags = CommandFlags.Buffered, CancellationToken cancellationToken = default(CancellationToken)) =>
             ExecuteAsync(cnn, new CommandDefinition(sql, param, transaction, commandTimeout, commandType, flags, cancellationToken));
-
-        /// <summary>
-        /// Execute a command asynchronously using .NET 4.5 Task.
-        /// </summary>
-        /// <param name="cnn">The connection to query on.</param>
-        /// <param name="sql">The SQL to execute for this query.</param>
-        /// <param name="param">The parameters to use for this query.</param>
-        /// <param name="cancellationToken">The cancellation token for this command.</param>
-        /// <returns>The number of rows affected.</returns>
-        public static Task<int> ExecuteAsync(this IDbConnection cnn, string sql, object param = null, CancellationToken cancellationToken = default(CancellationToken)) =>
-            ExecuteAsync(cnn, new CommandDefinition(sql, param, null, null, null, CommandFlags.Buffered, cancellationToken));
 
         /// <summary>
         /// Execute a command asynchronously using .NET 4.5 Task.
@@ -1222,18 +1185,6 @@ namespace Dapper
         /// <returns>The first cell returned, as <typeparamref name="T"/>.</returns>
         public static Task<T> ExecuteScalarAsync<T>(this IDbConnection cnn, string sql, object param = null, IDbTransaction transaction = null, int? commandTimeout = null, CommandType? commandType = null, CommandFlags flags = CommandFlags.Buffered, CancellationToken cancellationToken = default(CancellationToken)) =>
             ExecuteScalarImplAsync<T>(cnn, new CommandDefinition(sql, param, transaction, commandTimeout, commandType, flags, cancellationToken));
-
-        /// <summary>
-        /// Execute parameterized SQL that selects a single value.
-        /// </summary>
-        /// <typeparam name="T">The type to return.</typeparam>
-        /// <param name="cnn">The connection to execute on.</param>
-        /// <param name="sql">The SQL to execute.</param>
-        /// <param name="param">The parameters to use for this command.</param>
-        /// <param name="cancellationToken">The cancellation token for this command.</param>
-        /// <returns>The first cell returned, as <typeparamref name="T"/>.</returns>
-        public static Task<T> ExecuteScalarAsync<T>(this IDbConnection cnn, string sql, object param = null, CancellationToken cancellationToken = default(CancellationToken)) =>
-            ExecuteScalarImplAsync<T>(cnn, new CommandDefinition(sql, param, null, null, null, CommandFlags.Buffered, cancellationToken));
 
         /// <summary>
         /// Execute parameterized SQL that selects a single value.

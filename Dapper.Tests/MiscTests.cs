@@ -1115,7 +1115,7 @@ create table TPTable (Pid int not null primary key identity(1,1), Value int not 
 insert TPTable (Value) values (2), (568)");
 
             // fetch the data using the query in the question, then force to a dictionary
-            var rows = (await connection.QueryAsync<TPTable>("select * from TPTable", null, null).ConfigureAwait(false))
+            var rows = (await connection.QueryAsync<TPTable>("select * from TPTable").ConfigureAwait(false))
                 .ToDictionary(x => x.Pid);
 
             // check the number of rows
