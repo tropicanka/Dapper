@@ -263,7 +263,7 @@ namespace Dapper
                     }
 
                     p.Direction = param.ParameterDirection;
-                    if (handler == null)
+                    if (handler == null && (dbType != DbType.Object || SqlMapper.DefaultTypeHandler == null))
                     {
 #pragma warning disable 0618
                         p.Value = SqlMapper.SanitizeParameterValue(val);
@@ -287,7 +287,7 @@ namespace Dapper
                         if (param.Size != null) p.Size = param.Size.Value;
                         if (param.Precision != null) p.Precision = param.Precision.Value;
                         if (param.Scale != null) p.Scale = param.Scale.Value;
-                        handler.SetValue(p, val ?? DBNull.Value);
+                        (handler ?? SqlMapper.DefaultTypeHandler).SetValue(p, val ?? DBNull.Value);
                     }
 
                     if (add)

@@ -22,7 +22,7 @@ namespace Dapper
             /// </summary>
             /// <param name="value">The object to parse.</param>
             [Obsolete(ObsoleteInternalUsageOnly, true)]
-            public static T Parse(object value) => (T)handler.Parse(typeof(T), value);
+            public static T Parse(object value) => (T) (handler ?? DefaultTypeHandler).Parse(typeof(T), value);
 
             /// <summary>
             /// Not intended for direct usage.
@@ -30,7 +30,7 @@ namespace Dapper
             /// <param name="parameter">The parameter to set a value for.</param>
             /// <param name="value">The value to set.</param>
             [Obsolete(ObsoleteInternalUsageOnly, true)]
-            public static void SetValue(IDbDataParameter parameter, object value) => handler.SetValue(parameter, value, typeof(T));
+            public static void SetValue(IDbDataParameter parameter, object value) => (handler ?? DefaultTypeHandler).SetValue(parameter, value, typeof(T));
 
             internal static void SetHandler(ITypeHandler handler)
             {

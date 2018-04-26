@@ -333,6 +333,11 @@ namespace Dapper
         }
 
         /// <summary>
+        /// Default type handler for composite types
+        /// </summary>
+        public static ITypeHandler DefaultTypeHandler { get; set; }
+
+        /// <summary>
         /// Configure the specified type to be processed by a custom handler.
         /// </summary>
         /// <typeparam name="T">The type to handle.</typeparam>
@@ -360,8 +365,6 @@ namespace Dapper
 
             return LookupDbType(value.GetType(), "n/a", false, out ITypeHandler handler);
         }
-
-        private static Type typeForDefaultTypeHandler = typeof(object);
 
         /// <summary>
         /// OBSOLETE: For internal usage only. Lookup the DbType and handler for a given Type and member
@@ -398,6 +401,9 @@ namespace Dapper
             }
             if (typeof(IEnumerable).IsAssignableFrom(type))
             {
+                var elementType = type.GetGenericArguments().FirstOrDefault() ?? type.GetElementType();
+                if(!typeMap.TryGetValue(elementType, out _) && DefaultTypeHandler != null)
+                    handler = DefaultTypeHandler;
                 return DynamicParameters.EnumerableMultiParameter;
             }
 
@@ -415,9 +421,9 @@ namespace Dapper
                     return DbType.Object;
             }
 #endif
-            if (typeHandlers.TryGetValue(typeForDefaultTypeHandler, out handler))
+            if (DefaultTypeHandler != null)
             {
-                AddTypeHandler(type, handler);
+                handler = DefaultTypeHandler;
                 return DbType.Object;
             }
             if (demand)
@@ -1978,11 +1984,15 @@ namespace Dapper
         {
             // initially we tried TVP, however it performs quite poorly.
             // keep in mind SQL support up to 2000 params easily in sp_executesql, needing more is rare
-
             if (FeatureSupport.Get(command.Connection).Arrays)
             {
                 var arrayParm = command.CreateParameter();
-                arrayParm.Value = SanitizeParameterValue(value);
+                var elementType = value?.GetType().GetGenericArguments().FirstOrDefault() ?? value?.GetType().GetElementType();
+
+                if (elementType == null || typeMap.TryGetValue(elementType, out _))
+                    arrayParm.Value = SanitizeParameterValue(value);
+                else
+                    DefaultTypeHandler.SetValue(arrayParm, value);
                 arrayParm.ParameterName = namePrefix;
                 command.Parameters.Add(arrayParm);
             }
@@ -2531,6 +2541,7 @@ namespace Dapper
                     {
                         il.Emit(OpCodes.Box, prop.PropertyType); // stack is [parameters] [command] [name] [boxed-value]
                     }
+
                     il.EmitCall(OpCodes.Call, typeof(SqlMapper).GetMethod(nameof(SqlMapper.PackListParameters)), null); // stack is [parameters]
                     continue;
                 }
@@ -3291,9 +3302,8 @@ namespace Dapper
                             }
                             else
                             {
-                                if (colType == typeof(string) && typeHandlers.TryGetValue(typeForDefaultTypeHandler, out var defaultTypeHandler))
+                                if (colType == typeof(string) && DefaultTypeHandler != null)
                                 {
-                                    AddTypeHandler(unboxType, defaultTypeHandler);
 #pragma warning disable 618
                                     il.EmitCall(OpCodes.Call, typeof(TypeHandlerCache<>).MakeGenericType(unboxType).GetMethod(nameof(TypeHandlerCache<int>.Parse)), null);
 #pragma warning restore 618
